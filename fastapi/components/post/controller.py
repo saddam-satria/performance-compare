@@ -14,7 +14,7 @@ def getAPIPosts():
 
     content = {
         "total" : len(posts),
-        "message": "get posts", 
+        "message": "welcome to fastapi - by Saddam", 
         "statusCode" : HTTPStatus.OK, 
         "data": {
             "posts" : posts

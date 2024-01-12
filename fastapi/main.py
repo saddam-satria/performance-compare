@@ -21,7 +21,7 @@ async def  getUsageResource(request: Request, call_next):
 
     pid = os.getpid()
     process = Process(pid=pid)
-    print(f"cpu usage {process.cpu_percent()} - memory usage {round(process.memory_info().rss / (1024 * 1024))} MB")
+    print(f"CPU usage {process.cpu_percent()} - Memory usage {round(process.memory_info().rss / (1024 * 1024))} MB")
 
     response = await call_next(request)
 

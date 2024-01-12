@@ -9,7 +9,7 @@ class PostService {
 
     return {
       total: posts.length,
-      message: 'get posts',
+      message: 'welcome to nestjs - by Saddam',
       statusCode: HttpStatus.OK,
       data: {
         posts,

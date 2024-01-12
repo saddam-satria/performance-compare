@@ -9,7 +9,7 @@ import { PrismaClient } from '@prisma/client';
     },
   });
 
-  for (let index = 0; index < 100; index++) {
+  for (let index = 0; index < 1000; index++) {
     await prismaClient.post.create({
       data: {
         body: 'Test',
