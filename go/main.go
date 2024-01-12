@@ -13,21 +13,21 @@ import (
 )
 
 type Post struct {
-	PostId     string    `json:"postId" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	Title      string    `json:"title" gorm:"type:varchar(255)"`
-	Body       string    `json:"body" gorm:"text"`
-	AuthorName string    `json:"author_name"`
-	CreatedAt  time.Time `json:"createdAt" gorm:"autoCreateTime:true"`
-	UpdatedAt  time.Time `json:"updatedAt" gorm:"autoUpdateTime:true"`
+	PostId    string    `json:"postId" gorm:"type:text;primaryKey;column:postId"`
+	Title     string    `json:"title" gorm:"type:varchar(255);columm:title"`
+	Body      string    `json:"body" gorm:"type:text;column:body"`
+	CreatedAt time.Time `json:"createdAt" gorm:"column:createdAt;autoCreateTime:true"`
+	UpdatedAt time.Time `json:"updatedAt" gorm:"column:updatedAt;autoUpdateTime:true"`
 }
 
-func (Post) TableName() string {
-	return "Post"
+type PostOnAuthor struct {
+	Post
+	AuthorName string `json:"authorName"`
 }
 
 type PostResponse struct {
-	Total int    `json:"total"`
-	Posts []Post `json:"posts"`
+	Total int            `json:"total"`
+	Posts []PostOnAuthor `json:"posts"`
 }
 
 func MonitorUsage() gin.HandlerFunc {
@@ -55,8 +55,6 @@ func MonitorUsage() gin.HandlerFunc {
 func main() {
 	r := gin.New()
 
-	query := `SELECT "public"."Post"."postId", "public"."Post"."title", "public"."Post"."body", "public"."Post"."createdAt", "public"."Post"."updatedAt", "public"."Author"."name" AS author_name FROM "public"."Post" INNER JOIN "public"."Author" ON "public"."Author"."authorId" = "public"."Post"."author_id"`
-
 	r.Use(gin.LoggerWithConfig(gin.LoggerConfig{
 		Formatter: func(params gin.LogFormatterParams) string {
 			return fmt.Sprintf("[%s] %s %s - %v\n",
@@ -69,19 +67,23 @@ func main() {
 		Output: os.Stdout,
 	}))
 
-	r.Use(MonitorUsage())
+	// r.Use(MonitorUsage())
 
 	r.GET("/api/v1/posts", func(ctx *gin.Context) {
-		var post []Post
 
-		if err := pkg.Connection.Raw(query).Scan(&post).Error; err != nil {
+		query := `SELECT public."Post"."postId", "public"."Post"."title", "public"."Post"."body", "public"."Post"."createdAt", "public"."Post"."updatedAt", "public"."Author"."name" AS author_name, public."Post"."author_id" FROM "public"."Post" INNER JOIN "public"."Author" ON "public"."Author"."authorId" = "public"."Post"."author_id"`
+
+		var posts []PostOnAuthor
+
+		if err := pkg.Connection.Raw(query).Scan(&posts).Error; err != nil {
 			panic(err.Error())
 		}
 
 		response := pkg.Response[PostResponse]("welcome to golang", http.StatusOK, PostResponse{
-			Total: len(post),
-			Posts: post,
+			Total: len(posts),
+			Posts: posts,
 		})
+
 		ctx.JSON(http.StatusOK, response)
 	})
 
